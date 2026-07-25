@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy — Spendly{% endblock %}
+
+{% block content %}
+<style>
+    .privacy-page {
+        max-width: 800px;
+        margin: 4rem auto;
+        padding: 0 2rem;
+    }
+    .privacy-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    .privacy-title {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 4vw, 3rem);
+        color: var(--ink);
+        margin-bottom: 1rem;
+    }
+    .privacy-subtitle {
+        color: var(--ink-muted);
+        font-size: 1.1rem;
+    }
+    .privacy-card {
+        background: var(--paper-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 3rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    .privacy-section {
+        margin-bottom: 2.5rem;
+    }
+    .privacy-section:last-child {
+        margin-bottom: 0;
+    }
+    .privacy-section h2 {
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        color: var(--ink);
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border-soft);
+        padding-bottom: 0.5rem;
+    }
+    .privacy-section p {
+        color: var(--ink-soft);
+        line-height: 1.7;
+        font-size: 1rem;
+    }
+    .privacy-footer {
+        display: flex;
+        justify-content: center;
+        margin-top: 3rem;
+    }
+</style>
+
+<div class="privacy-page">
+    <header class="privacy-header">
+        <h1 class="privacy-title">Privacy Policy</h1>
+        <p class="privacy-subtitle">Your data privacy is our priority.</p>
+    </header>
+
+    <div class="privacy-card">
+        <div class="privacy-section">
+            <h2>1. Data We Collect</h2>
+            <p>We collect information that you provide directly to us, including your name, email address, and the financial transactions you log within the app. We may also collect basic technical information such as your browser type and operating system to improve user experience.</p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>2. How We Use Your Data</h2>
+            <p>Your data is used exclusively to provide the expense tracking service. We use your transaction history to generate spending reports, categories, and financial summaries. We do not sell your personal or financial data to third parties.</p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>3. Data Storage</h2>
+            <p>Your data is stored securely using industry-standard encryption. We implement regular backups and security audits to ensure your financial information remains safe and accessible only to you.</p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>4. Third Party Services</h2>
+            <p>We may use third-party service providers (such as hosting providers) to facilitate our services. These providers are bound by strict confidentiality agreements and are prohibited from using your data for any purpose other than providing the requested service to Spendly.</p>
+        </div>
+
+        <div class="privacy-section">
+            <h2>5. Contact Us</h2>
+            <p>If you have any questions about this Privacy Policy or how your data is handled, please contact us at privacy@spendly.example.com. We aim to respond to all inquiries within 48 hours.</p>
+        </div>
+    </div>
+
+    <div class="privacy-footer">
+        <a href="{{ url_for('landing') }}" class="btn-ghost">Back to Home</a>
+    </div>
+</div>
+{% endblock %}
