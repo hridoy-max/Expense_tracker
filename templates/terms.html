@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Terms and Conditions — Spendly{% endblock %}
+
+{% block content %}
+<style>
+    .terms-page {
+        max-width: 800px;
+        margin: 4rem auto;
+        padding: 0 2rem;
+    }
+    .terms-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    .terms-title {
+        font-family: var(--font-display);
+        font-size: clamp(2rem, 4vw, 3rem);
+        color: var(--ink);
+        margin-bottom: 1rem;
+    }
+    .terms-subtitle {
+        color: var(--ink-muted);
+        font-size: 1.1rem;
+    }
+    .terms-card {
+        background: var(--paper-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 3rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    .terms-section {
+        margin-bottom: 2.5rem;
+    }
+    .terms-section:last-child {
+        margin-bottom: 0;
+    }
+    .terms-section h2 {
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        color: var(--ink);
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border-soft);
+        padding-bottom: 0.5rem;
+    }
+    .terms-section p {
+        color: var(--ink-soft);
+        line-height: 1.7;
+        font-size: 1rem;
+    }
+    .terms-footer {
+        display: flex;
+        justify-content: center;
+        margin-top: 3rem;
+    }
+</style>
+
+<div class="terms-page">
+    <header class="terms-header">
+        <h1 class="terms-title">Terms and Conditions</h1>
+        <p class="terms-subtitle">Please read our terms of service carefully.</p>
+    </header>
+
+    <div class="terms-card">
+        <div class="terms-section">
+            <h2>1. Acceptance of Terms</h2>
+            <p>By accessing or using Spendly, you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use the service. These terms constitute a legal agreement between you and Spendly.</p>
+        </div>
+
+        <div class="terms-section">
+            <h2>2. Use of Service</h2>
+            <p>Spendly provides tools for personal expense tracking. You agree to use the service only for lawful purposes and in a manner that does not infringe upon the rights of others or restrict their use of the service. Any unauthorized use of the platform is strictly prohibited.</p>
+        </div>
+
+        <div class="terms-section">
+            <h2>3. User Data</h2>
+            <p>Your financial data is personal and sensitive. Spendly implements reasonable security measures to protect your information. However, you acknowledge that no method of transmission over the internet is 100% secure. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
+        </div>
+
+        <div class="terms-section">
+            <h2>4. Limitations of Liability</h2>
+            <p>Spendly is provided "as is" without warranties of any kind, express or implied. In no event shall Spendly be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses resulting from your use of the service.</p>
+        </div>
+
+        <div class="terms-section">
+            <h2>5. Changes to Terms</h2>
+            <p>We reserve the right to modify these terms at any time. We will notify users of any significant changes via the platform or email. Continued use of the service after changes constitute acceptance of the new terms.</p>
+        </div>
+    </div>
+
+    <div class="terms-footer">
+        <a href="{{ url_for('landing') }}" class="btn-ghost">Back to Home</a>
+    </div>
+</div>
+{% endblock %}
