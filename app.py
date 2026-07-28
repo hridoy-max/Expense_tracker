@@ -1,12 +1,38 @@
-from flask import Flask, render_template, request, flash, redirect, url_for
-from database.db import get_db, init_db, seed_db, create_user
+from flask import Flask, render_template, request, flash, redirect, url_for, session
+from database.db import get_db, init_db, seed_db, create_user, get_user_by_email
 import sqlite3
+from werkzeug.security import check_password_hash
+from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = 'dev-secret-key-for-spendly'
 
+def login_required(f):
+    """
+    Decorator to restrict route access to authenticated users.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Please sign in to access this page", "error")
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def guest_only(f):
+    """
+    Decorator to restrict route access to non-authenticated users.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' in session:
+            return redirect(url_for('profile'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 # ------------------------------------------------------------------ #
+
 # Routes                                                              #
 # ------------------------------------------------------------------ #
 
@@ -16,6 +42,7 @@ def landing():
 
 
 @app.route("/register", methods=['GET', 'POST'])
+@guest_only
 def register():
     if request.method == 'POST':
         name = request.form.get('name')
@@ -47,8 +74,22 @@ def register():
     return render_template("register.html")
 
 
-@app.route("/login")
+@app.route("/login", methods=['GET', 'POST'])
+@guest_only
 def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        user = get_user_by_email(email)
+        if user and check_password_hash(user['password_hash'], password):
+            session['user_id'] = user['id']
+            flash("Welcome back!", "success")
+            return redirect(url_for('profile'))
+
+        flash("Invalid email or password", "error")
+        return render_template("login.html")
+
     return render_template("login.html")
 
 
@@ -68,12 +109,15 @@ def privacy():
 
 @app.route("/logout")
 def logout():
-    return "Logout — coming in Step 3"
+    session.clear()
+    flash("You have been signed out", "success")
+    return redirect(url_for('landing'))
 
 
 @app.route("/profile")
+@login_required
 def profile():
-    return "Profile page — coming in Step 4"
+    return render_template("landing.html")
 
 
 @app.route("/expenses/add")
