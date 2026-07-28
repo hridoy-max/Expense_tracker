@@ -19,6 +19,18 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def guest_only(f):
+    """
+    Decorator to restrict route access to non-authenticated users.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' in session:
+            return redirect(url_for('profile'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 # ------------------------------------------------------------------ #
 
 # Routes                                                              #
@@ -30,6 +42,7 @@ def landing():
 
 
 @app.route("/register", methods=['GET', 'POST'])
+@guest_only
 def register():
     if request.method == 'POST':
         name = request.form.get('name')
@@ -62,6 +75,7 @@ def register():
 
 
 @app.route("/login", methods=['GET', 'POST'])
+@guest_only
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
@@ -103,7 +117,7 @@ def logout():
 @app.route("/profile")
 @login_required
 def profile():
-    return "Profile page — coming in Step 4"
+    return render_template("landing.html")
 
 
 @app.route("/expenses/add")
