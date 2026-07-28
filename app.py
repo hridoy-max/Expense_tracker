@@ -1,8 +1,9 @@
-from flask import Flask, render_template
-from database.db import get_db, init_db, seed_db
+from flask import Flask, render_template, request, flash, redirect, url_for
+from database.db import get_db, init_db, seed_db, create_user
+import sqlite3
 
 app = Flask(__name__)
-
+app.secret_key = 'dev-secret-key-for-spendly'
 
 
 # ------------------------------------------------------------------ #
@@ -14,8 +15,35 @@ def landing():
     return render_template("landing.html")
 
 
-@app.route("/register")
+@app.route("/register", methods=['GET', 'POST'])
 def register():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+
+        # Validation: Non-empty fields
+        if not all([name, email, password, confirm_password]):
+            flash("All fields are required", "error")
+            return render_template("register.html")
+
+        # Validation: Passwords match
+        if password != confirm_password:
+            flash("Passwords do not match", "error")
+            return render_template("register.html")
+
+        try:
+            create_user(name, email, password)
+            flash("Account created successfully! Please sign in.", "success")
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            flash("Email already registered", "error")
+            return render_template("register.html")
+        except Exception as e:
+            flash(f"An unexpected error occurred: {e}", "error")
+            return render_template("register.html")
+
     return render_template("register.html")
 
 
@@ -32,8 +60,6 @@ def terms():
 @app.route("/privacy")
 def privacy():
     return render_template("privacy.html")
-
-
 
 
 # ------------------------------------------------------------------ #
