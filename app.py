@@ -38,6 +38,8 @@ def guest_only(f):
 
 @app.route("/")
 def landing():
+    if 'user_id' in session:
+        return redirect(url_for('profile'))
     return render_template("landing.html")
 
 
@@ -117,7 +119,42 @@ def logout():
 @app.route("/profile")
 @login_required
 def profile():
-    return render_template("landing.html")
+    # Mock data for design validation (Step 04)
+    user_data = {
+        "name": "Naimur Rahman",
+        "email": "naimur@example.com",
+        "member_since": "July 2026"
+    }
+
+    summary_stats = {
+        "total_spent": "1,240.50",
+        "transaction_count": 42,
+        "top_category": "Food & Dining"
+    }
+
+    transactions = [
+        {"date": "2026-07-28", "description": "Grocery Store", "category": "Food", "amount": "65.20"},
+        {"date": "2026-07-27", "description": "Netflix Subscription", "category": "Entertainment", "amount": "15.99"},
+        {"date": "2026-07-25", "description": "Gas Station", "category": "Transport", "amount": "45.00"},
+        {"date": "2026-07-24", "description": "Pharmacy", "category": "Health", "amount": "12.40"},
+        {"date": "2026-07-22", "description": "Restaurant", "category": "Food", "amount": "32.00"},
+    ]
+
+    category_breakdown = [
+        {"category": "Food", "amount": "450.00", "percentage": 36},
+        {"category": "Transport", "amount": "300.00", "percentage": 24},
+        {"category": "Entertainment", "amount": "200.00", "percentage": 16},
+        {"category": "Health", "amount": "150.00", "percentage": 12},
+        {"category": "Other", "amount": "140.50", "percentage": 12},
+    ]
+
+    return render_template(
+        "profile.html",
+        user=user_data,
+        stats=summary_stats,
+        transactions=transactions,
+        categories=category_breakdown
+    )
 
 
 @app.route("/expenses/add")
