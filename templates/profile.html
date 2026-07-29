@@ -49,6 +49,7 @@
             <h2>Recent Transactions</h2>
         </div>
         <div class="tx-card">
+            {% if transactions %}
             <table class="tx-table">
                 <thead>
                     <tr>
@@ -74,6 +75,11 @@
                     {% endfor %}
                 </tbody>
             </table>
+            {% else %}
+            <div class="empty-state">
+                <p>No transactions found. Start adding expenses to see your history!</p>
+            </div>
+            {% endif %}
         </div>
     </section>
 
