@@ -66,8 +66,83 @@ def get_user_by_email(email):
     with get_db() as conn:
         return conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
 
-def seed_db():
+def get_user_by_id(user_id):
+    """
+    Retrieves a user record by their ID.
+    Returns the user row if found, otherwise None.
+    """
+    with get_db() as conn:
+        return conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
+
+def get_user_stats(user_id):
+    """
+    Calculates summary statistics for a user's expenses.
+    Returns a dictionary with total_spent, transaction_count, and top_category.
+    """
+    with get_db() as conn:
+        # Total spent
+        res_total = conn.execute("SELECT SUM(amount) as total FROM expenses WHERE user_id = ?", (user_id,)).fetchone()
+        total_spent = res_total['total'] if res_total and res_total['total'] is not None else 0.0
+
+        # Transaction count
+        res_count = conn.execute("SELECT COUNT(*) as count FROM expenses WHERE user_id = ?", (user_id,)).fetchone()
+        transaction_count = res_count['count'] if res_count else 0
+
+        # Top category
+        res_top = conn.execute(
+            "SELECT category FROM expenses WHERE user_id = ? GROUP BY category ORDER BY SUM(amount) DESC LIMIT 1",
+            (user_id,)
+        ).fetchone()
+        top_category = res_top['category'] if res_top else None
+
+        return {
+            "total_spent": total_spent,
+            "transaction_count": transaction_count,
+            "top_category": top_category
+        }
+
+
+def get_user_transactions(user_id, limit=5):
+    """
+    Retrieves the most recent transactions for a user.
+    """
+    with get_db() as conn:
+        return conn.execute(
+            "SELECT date, description, category, amount FROM expenses WHERE user_id = ? ORDER BY date DESC LIMIT ?",
+            (user_id, limit)
+        ).fetchall()
+
+
+def get_category_breakdown(user_id):
+    """
+    Calculates the spending breakdown by category for a user.
+    Returns a list of dictionaries with category, amount, and percentage.
+    """
+    with get_db() as conn:
+        rows = conn.execute(
+            "SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category",
+            (user_id,)
+        ).fetchall()
+
+        if not rows:
+            return []
+
+        grand_total = sum(row['total'] for row in rows)
+        breakdown = []
+
+        for row in rows:
+            percentage = (row['total'] / grand_total * 100) if grand_total > 0 else 0
+            breakdown.append({
+                "category": row['category'],
+                "amount": row['total'],
+                "percentage": round(percentage, 1)
+            })
+
+        return breakdown
+
+
+def seed_db():
     """
     Seeds the database with sample data if it's empty.
     """

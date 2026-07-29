@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, flash, redirect, url_for, session
-from database.db import get_db, init_db, seed_db, create_user, get_user_by_email
+from flask import Flask, render_template, request, flash, redirect, url_for, session, abort
+from database.db import get_db, init_db, seed_db, create_user, get_user_by_email, get_user_by_id, get_user_stats, get_user_transactions, get_category_breakdown
 import sqlite3
 from werkzeug.security import check_password_hash
 from functools import wraps
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'dev-secret-key-for-spendly'
@@ -119,41 +120,43 @@ def logout():
 @app.route("/profile")
 @login_required
 def profile():
-    # Mock data for design validation (Step 04)
+    user_id = session.get('user_id')
+
+    # Fetch real data from database
+    user = get_user_by_id(user_id)
+    stats = get_user_stats(user_id)
+    transactions = get_user_transactions(user_id)
+    categories = get_category_breakdown(user_id)
+
+    if not user:
+        abort(404)
+
+    # Format data for template
+    # Format member_since from created_at (ISO format) to "Month Year"
+    try:
+        dt = datetime.strptime(user['created_at'], '%Y-%m-%d %H:%M:%S')
+        member_since = dt.strftime('%B %Y')
+    except (ValueError, TypeError):
+        member_since = "Unknown"
+
     user_data = {
-        "name": "Naimur Rahman",
-        "email": "naimur@example.com",
-        "member_since": "July 2026"
+        "name": user['name'],
+        "email": user['email'],
+        "member_since": member_since
     }
 
     summary_stats = {
-        "total_spent": "1,240.50",
-        "transaction_count": 42,
-        "top_category": "Food & Dining"
+        "total_spent": f"{stats['total_spent']:,.2f}",
+        "transaction_count": stats['transaction_count'],
+        "top_category": stats['top_category'] or "N/A"
     }
-
-    transactions = [
-        {"date": "2026-07-28", "description": "Grocery Store", "category": "Food", "amount": "65.20"},
-        {"date": "2026-07-27", "description": "Netflix Subscription", "category": "Entertainment", "amount": "15.99"},
-        {"date": "2026-07-25", "description": "Gas Station", "category": "Transport", "amount": "45.00"},
-        {"date": "2026-07-24", "description": "Pharmacy", "category": "Health", "amount": "12.40"},
-        {"date": "2026-07-22", "description": "Restaurant", "category": "Food", "amount": "32.00"},
-    ]
-
-    category_breakdown = [
-        {"category": "Food", "amount": "450.00", "percentage": 36},
-        {"category": "Transport", "amount": "300.00", "percentage": 24},
-        {"category": "Entertainment", "amount": "200.00", "percentage": 16},
-        {"category": "Health", "amount": "150.00", "percentage": 12},
-        {"category": "Other", "amount": "140.50", "percentage": 12},
-    ]
 
     return render_template(
         "profile.html",
         user=user_data,
         stats=summary_stats,
         transactions=transactions,
-        categories=category_breakdown
+        categories=categories
     )
 
 
