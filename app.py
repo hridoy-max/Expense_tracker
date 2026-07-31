@@ -3,7 +3,7 @@ from database.db import get_db, init_db, seed_db, create_user, get_user_by_email
 import sqlite3
 from werkzeug.security import check_password_hash
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = 'dev-secret-key-for-spendly'
@@ -117,19 +117,71 @@ def logout():
     return redirect(url_for('landing'))
 
 
+def get_date_filter_params(request_args):
+    """
+    Validates date filters and calculates presets.
+    Returns (date_from, date_to, presets)
+    """
+    date_from = request_args.get('date_from')
+    date_to = request_args.get('date_to')
+
+    def is_valid_date(date_str):
+        if not date_str:
+            return False
+        try:
+            datetime.strptime(date_str, '%Y-%m-%d')
+            return True
+        except ValueError:
+            return False
+
+    if date_from and not is_valid_date(date_from):
+        date_from = None
+    if date_to and not is_valid_date(date_to):
+        date_to = None
+
+    if date_from and date_to and date_from > date_to:
+        flash("Start date must be before end date.", "error")
+        date_from = None
+        date_to = None
+
+    today = datetime.now().date()
+    presets = {
+        "this_month": {
+            "from": today.replace(day=1).strftime('%Y-%m-%d'),
+            "to": today.strftime('%Y-%m-%d')
+        },
+        "last_3_months": {
+            "from": (today - timedelta(days=90)).strftime('%Y-%m-%d'),
+            "to": today.strftime('%Y-%m-%d')
+        },
+        "last_6_months": {
+            "from": (today - timedelta(days=180)).strftime('%Y-%m-%d'),
+            "to": today.strftime('%Y-%m-%d')
+        },
+        "all_time": {
+            "from": None,
+            "to": None
+        }
+    }
+    return date_from, date_to, presets
+
 @app.route("/profile")
 @login_required
 def profile():
     user_id = session.get('user_id')
 
-    # Fetch real data from database
+    # Get validated filters and presets
+    date_from, date_to, presets = get_date_filter_params(request.args)
+
+    # Fetch real data from database with filters
     user = get_user_by_id(user_id)
-    stats = get_user_stats(user_id)
-    transactions = get_user_transactions(user_id)
-    categories = get_category_breakdown(user_id)
+    stats = get_user_stats(user_id, date_from, date_to)
+    transactions = get_user_transactions(user_id, date_from=date_from, date_to=date_to)
+    categories = get_category_breakdown(user_id, date_from, date_to)
 
     if not user:
         abort(404)
+
 
     # Format data for template
     # Format member_since from created_at (ISO format) to "Month Year"
@@ -156,7 +208,9 @@ def profile():
         user=user_data,
         stats=summary_stats,
         transactions=transactions,
-        categories=categories
+        categories=categories,
+        presets=presets,
+        active_filter={"from": date_from, "to": date_to}
     )
 
 

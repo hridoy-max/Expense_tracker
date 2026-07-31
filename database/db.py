@@ -1,13 +1,13 @@
 import sqlite3
 from werkzeug.security import generate_password_hash
-
-DB_PATH = "spendly.db"
+from flask import current_app
 
 def get_db():
     """
-    Opens a connection to the SQLite database and configures it.
+    Opens a connection to the SQLite database configured in the app.
     """
-    conn = sqlite3.connect(DB_PATH)
+    db_path = current_app.config.get('DATABASE', "spendly.db")
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
@@ -75,24 +75,32 @@ def get_user_by_id(user_id):
         return conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
 
-def get_user_stats(user_id):
+def get_user_stats(user_id, date_from=None, date_to=None):
     """
     Calculates summary statistics for a user's expenses.
     Returns a dictionary with total_spent, transaction_count, and top_category.
     """
     with get_db() as conn:
+        # Base filter
+        where_clause = "WHERE user_id = ?"
+        params = [user_id]
+
+        if date_from and date_to:
+            where_clause += " AND date BETWEEN ? AND ?"
+            params.extend([date_from, date_to])
+
         # Total spent
-        res_total = conn.execute("SELECT SUM(amount) as total FROM expenses WHERE user_id = ?", (user_id,)).fetchone()
+        res_total = conn.execute(f"SELECT SUM(amount) as total FROM expenses {where_clause}", params).fetchone()
         total_spent = res_total['total'] if res_total and res_total['total'] is not None else 0.0
 
         # Transaction count
-        res_count = conn.execute("SELECT COUNT(*) as count FROM expenses WHERE user_id = ?", (user_id,)).fetchone()
+        res_count = conn.execute(f"SELECT COUNT(*) as count FROM expenses {where_clause}", params).fetchone()
         transaction_count = res_count['count'] if res_count else 0
 
         # Top category
         res_top = conn.execute(
-            "SELECT category FROM expenses WHERE user_id = ? GROUP BY category ORDER BY SUM(amount) DESC LIMIT 1",
-            (user_id,)
+            f"SELECT category FROM expenses {where_clause} GROUP BY category ORDER BY SUM(amount) DESC LIMIT 1",
+            params
         ).fetchone()
         top_category = res_top['category'] if res_top else None
 
@@ -103,26 +111,42 @@ def get_user_stats(user_id):
         }
 
 
-def get_user_transactions(user_id, limit=5):
+def get_user_transactions(user_id, limit=5, date_from=None, date_to=None):
     """
     Retrieves the most recent transactions for a user.
     """
     with get_db() as conn:
+        where_clause = "WHERE user_id = ?"
+        params = [user_id]
+
+        if date_from and date_to:
+            where_clause += " AND date BETWEEN ? AND ?"
+            params.extend([date_from, date_to])
+
+        params.append(limit)
+
         return conn.execute(
-            "SELECT date, description, category, amount FROM expenses WHERE user_id = ? ORDER BY date DESC LIMIT ?",
-            (user_id, limit)
+            f"SELECT date, description, category, amount FROM expenses {where_clause} ORDER BY date DESC LIMIT ?",
+            params
         ).fetchall()
 
 
-def get_category_breakdown(user_id):
+def get_category_breakdown(user_id, date_from=None, date_to=None):
     """
     Calculates the spending breakdown by category for a user.
     Returns a list of dictionaries with category, amount, and percentage.
     """
     with get_db() as conn:
+        where_clause = "WHERE user_id = ?"
+        params = [user_id]
+
+        if date_from and date_to:
+            where_clause += " AND date BETWEEN ? AND ?"
+            params.extend([date_from, date_to])
+
         rows = conn.execute(
-            "SELECT category, SUM(amount) as total FROM expenses WHERE user_id = ? GROUP BY category",
-            (user_id,)
+            f"SELECT category, SUM(amount) as total FROM expenses {where_clause} GROUP BY category",
+            params
         ).fetchall()
 
         if not rows:
