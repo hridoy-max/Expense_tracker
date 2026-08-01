@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics — Spendly{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/analytics.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="analytics-bg">
+    <div class="analytics-card">
+        <!-- Subtle corner blobs -->
+        <div class="blob blob-top-right"></div>
+        <div class="blob blob-bottom-left"></div>
+
+        <!-- Icon -->
+        <div class="analytics-icon">
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="18" cy="18" r="13" stroke="rgba(255,255,255,0.9)" stroke-width="2" />
+                <path d="M18 10v8l5 3" stroke="rgba(255,255,255,0.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        </div>
+
+        <!-- Coming Soon Badge -->
+        <div class="analytics-badge">
+            <span>Coming Soon</span>
+        </div>
+
+        <!-- Page Name -->
+        <h1 class="analytics-title">Advanced Analytics</h1>
+
+        <!-- Description -->
+        <p class="analytics-description">
+            We're working on powerful insights and visualizations to help you understand your spending patterns better.
+        </p>
+
+        <!-- Countdown -->
+        <div class="countdown-container">
+            <div class="countdown-item">
+                <div class="countdown-value" id="days">00</div>
+                <span class="countdown-label">Days</span>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-value" id="hours">00</div>
+                <span class="countdown-label">Hours</span>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-value" id="minutes">00</div>
+                <span class="countdown-label">Min</span>
+            </div>
+            <div class="countdown-item">
+                <div class="countdown-value" id="seconds">00</div>
+                <span class="countdown-label">Sec</span>
+            </div>
+        </div>
+
+        <!-- Animated Dots -->
+        <div class="dots-container">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+
+        <p class="analytics-footer">
+            We're crafting something special
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Countdown Logic
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + 47); // 47 days from now to match design
+
+        function updateCountdown() {
+            const now = new Date();
+            const diff = targetDate - now;
+
+            if (diff <= 0) {
+                document.getElementById('days').innerText = '00';
+                document.getElementById('hours').innerText = '00';
+                document.getElementById('minutes').innerText = '00';
+                document.getElementById('seconds').innerText = '00';
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('days').innerText = String(days).padStart(2, '0');
+            document.getElementById('hours').innerText = String(hours).padStart(2, '0');
+            document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
+            document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        // Animated Dots Logic
+        const dots = document.querySelectorAll('.dot');
+        let currentDot = 0;
+
+        setInterval(() => {
+            dots.forEach(dot => dot.classList.remove('active'));
+            dots[currentDot].classList.add('active');
+            currentDot = (currentDot + 1) % dots.length;
+        }, 600);
+
+        // Init first dot
+        dots[0].classList.add('active');
+    });
+</script>
+{% endblock %}
