@@ -1,0 +1,32 @@
+/* ------------------------------------------------------------------ */
+/* Add Expense Page Styles                                              */
+/* ------------------------------------------------------------------ */
+
+.add-expense-container {
+    max-width: var(--auth-width);
+    margin: 0 auto;
+    width: 100%;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.cancel-link {
+    font-size: 0.9rem;
+    color: var(--ink-muted);
+    transition: color 0.2s;
+}
+
+.cancel-link:hover {
+    color: var(--ink);
+}
+
+/* Ensure date input follows the theme */
+input[type="date"].form-input {
+    cursor: pointer;
+}

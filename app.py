@@ -107,7 +107,7 @@ def privacy():
 
 
 # ------------------------------------------------------------------ #
-# Placeholder routes — students will implement these                  #
+# User Routes                                                         #
 # ------------------------------------------------------------------ #
 
 @app.route("/logout")
@@ -219,9 +219,56 @@ def profile():
 def analytics():
     return render_template("analytics.html")
 
-@app.route("/expenses/add")
+
+@app.route("/expenses/add", methods=['GET', 'POST'])
+@login_required
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if request.method == 'POST':
+        amount_raw = request.form.get('amount')
+        category = request.form.get('category')
+        date = request.form.get('date')
+        description = request.form.get('description')
+
+        # Validation
+        errors = []
+
+        # Amount validation
+        try:
+            amount = float(amount_raw)
+            if amount <= 0:
+                errors.append("Amount must be a positive number.")
+        except (TypeError, ValueError):
+            errors.append("Please enter a valid numeric amount.")
+
+        # Category validation
+        valid_categories = ['Food', 'Transport', 'Bills', 'Health', 'Entertainment', 'Shopping', 'Other']
+        if not category or category not in valid_categories:
+            errors.append("Please select a valid category.")
+
+        # Date validation
+        if not date:
+            errors.append("Please select a date.")
+        else:
+            try:
+                datetime.strptime(date, '%Y-%m-%d')
+            except ValueError:
+                errors.append("Invalid date format.")
+
+        if errors:
+            for error in errors:
+                flash(error, "error")
+            return render_template("add_expense.html", today=datetime.now().strftime('%Y-%m-%d'))
+
+        # All valid - Save to DB
+        user_id = session.get('user_id')
+        from database.db import insert_expense
+        insert_expense(user_id, amount, category, date, description)
+
+        flash("Expense added successfully!", "success")
+        return redirect(url_for('profile'))
+
+    # GET request
+    return render_template("add_expense.html", today=datetime.now().strftime('%Y-%m-%d'))
 
 
 @app.route("/expenses/<int:id>/edit")
