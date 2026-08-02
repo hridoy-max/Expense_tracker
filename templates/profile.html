@@ -93,6 +93,7 @@
                         <th>Description</th>
                         <th>Category</th>
                         <th class="amount-cell">Amount</th>
+                        <th class="action-cell">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,6 +108,9 @@
                             </span>
                         </td>
                         <td class="amount-cell">₹{{ "%.2f"|format(tx.amount) }}</td>
+                        <td class="action-cell">
+                            <a href="{{ url_for('edit_expense', id=tx.id) }}" class="edit-link">Edit</a>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
