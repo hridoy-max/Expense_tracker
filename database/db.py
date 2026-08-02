@@ -166,6 +166,19 @@ def get_category_breakdown(user_id, date_from=None, date_to=None):
         return breakdown
 
 
+def insert_expense(user_id, amount, category, date, description):
+    """
+    Inserts a new expense record for a user.
+    """
+    with get_db() as conn:
+        cursor = conn.execute(
+            "INSERT INTO expenses (user_id, amount, category, date, description) VALUES (?, ?, ?, ?, ?)",
+            (user_id, amount, category, date, description if description and description.strip() else None)
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+
 def seed_db():
     """
     Seeds the database with sample data if it's empty.
