@@ -271,9 +271,66 @@ def add_expense():
     return render_template("add_expense.html", today=datetime.now().strftime('%Y-%m-%d'))
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=['GET', 'POST'])
+@login_required
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    user_id = session.get('user_id')
+    from database.db import get_expense_by_id, update_expense
+
+    expense = get_expense_by_id(id)
+
+    # Security: Verify expense exists and belongs to the current user
+    if not expense or expense['user_id'] != user_id:
+        abort(404)
+
+    if request.method == 'POST':
+        amount_raw = request.form.get('amount')
+        category = request.form.get('category')
+        date = request.form.get('date')
+        description = request.form.get('description')
+
+        # Validation (mirror add_expense pattern)
+        errors = []
+
+        # Amount validation
+        try:
+            amount = float(amount_raw)
+            if amount <= 0:
+                errors.append("Amount must be a positive number.")
+        except (TypeError, ValueError):
+            errors.append("Please enter a valid numeric amount.")
+
+        # Category validation
+        valid_categories = ['Food', 'Transport', 'Bills', 'Health', 'Entertainment', 'Shopping', 'Other']
+        if not category or category not in valid_categories:
+            errors.append("Please select a valid category.")
+
+        # Date validation
+        if not date:
+            errors.append("Please select a date.")
+        else:
+            try:
+                datetime.strptime(date, '%Y-%m-%d')
+            except ValueError:
+                errors.append("Invalid date format.")
+
+        if errors:
+            for error in errors:
+                flash(error, "error")
+            return render_template("edit_expense.html", expense=expense, today=datetime.now().strftime('%Y-%m-%d'))
+
+        # All valid - Update DB
+        updated_rows = update_expense(id, user_id, amount, category, date, description)
+        if updated_rows == 0:
+            flash("An error occurred while updating the expense.", "error")
+            return render_template("edit_expense.html", expense=expense, today=datetime.now().strftime('%Y-%m-%d'))
+
+        flash("Expense updated successfully!", "success")
+        return redirect(url_for('profile'))
+
+    # GET request
+    return render_template("edit_expense.html", expense=expense, today=datetime.now().strftime('%Y-%m-%d'))
+
 
 
 @app.route("/expenses/<int:id>/delete")

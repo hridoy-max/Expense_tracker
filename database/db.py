@@ -126,7 +126,7 @@ def get_user_transactions(user_id, limit=5, date_from=None, date_to=None):
         params.append(limit)
 
         return conn.execute(
-            f"SELECT date, description, category, amount FROM expenses {where_clause} ORDER BY date DESC LIMIT ?",
+            f"SELECT id, date, description, category, amount FROM expenses {where_clause} ORDER BY date DESC LIMIT ?",
             params
         ).fetchall()
 
@@ -177,6 +177,30 @@ def insert_expense(user_id, amount, category, date, description):
         )
         conn.commit()
         return cursor.lastrowid
+
+
+def get_expense_by_id(expense_id):
+    """
+    Retrieves a single expense record by its ID.
+    Returns the row if found, otherwise None.
+    """
+    with get_db() as conn:
+        return conn.execute("SELECT * FROM expenses WHERE id = ?", (expense_id,)).fetchone()
+
+
+def update_expense(expense_id, user_id, amount, category, date, description):
+    """
+    Updates an existing expense record for a user.
+    Returns the number of rows affected.
+    """
+    description = description if description and description.strip() else None
+    with get_db() as conn:
+        cursor = conn.execute(
+            "UPDATE expenses SET amount = ?, category = ?, date = ?, description = ? WHERE id = ? AND user_id = ?",
+            (amount, category, date, description, expense_id, user_id)
+        )
+        conn.commit()
+        return cursor.rowcount
 
 
 def seed_db():
